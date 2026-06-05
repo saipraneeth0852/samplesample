@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>LC-Aligned Proforma Invoice Data Capture Workspace</title>
+    <style>
+      :root {
+        --bg-primary: #0f172a;
+        --bg-surface: #1e293b;
+        --bg-input: #334155;
+        --border-color: #475569;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --color-green-mt700: #10b981;
+        --color-blue-comm: #3b82f6;
+        --color-danger: #ef4444;
+        --color-warning: #f59e0b;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background-color: var(--bg-primary);
+        color: var(--text-main);
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        gap: 20px;
+        font-size: 13px;
+      }
+
+      .main-workspace {
+        flex: 3;
+        max-width: 75%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .sidebar-engine {
+        flex: 1;
+        min-width: 320px;
+        background-color: var(--bg-surface);
+        border-left: 4px solid var(--color-warning);
+        padding: 20px;
+        border-radius: 8px;
+        position: sticky;
+        top: 20px;
+        height: calc(100vh - 80px);
+        overflow-y: auto;
+      }
+
+      .app-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 15px;
+      }
+
+      .app-header h1 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.5px;
+      }
+
+      .app-header p {
+        margin: 5px 0 0 0;
+        color: var(--text-muted);
+      }
+
+      .form-section {
+        background-color: var(--bg-surface);
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        padding: 20px;
+      }
+
+      .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin-top: 0;
+        margin-bottom: 15px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .tag-mt700 {
+        color: var(--color-green-mt700);
+        font-size: 11px;
+        font-weight: bold;
+      }
+
+      .tag-comm {
+        color: var(--color-blue-comm);
+        font-size: 11px;
+        font-weight: bold;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+
+      .grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 15px;
+      }
+
+      .grid-4 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 15px;
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 12px;
+        position: relative;
+      }
+
+      label {
+        font-weight: 500;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      input,
+      select,
+      textarea {
+        background-color: var(--bg-input);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 8px 12px;
+        font-size: 13px;
+        outline: none;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: var(--color-blue-comm);
+      }
+
+      .input-mt700 {
+        border-left: 3px solid var(--color-green-mt700);
+      }
+
+      .input-comm {
+        border-left: 3px solid var(--color-blue-comm);
+      }
+
+      .inline-alert {
+        color: var(--color-danger);
+        font-size: 11px;
+        margin-top: 4px;
+        display: none;
+      }
+
+      .inline-warn {
+        color: var(--color-warning);
+        font-size: 11px;
+        margin-top: 4px;
+        display: none;
+      }
+
+      .inline-suggest {
+        color: var(--color-green-mt700);
+        font-size: 11px;
+        margin-top: 4px;
+        cursor: pointer;
+        text-decoration: underline;
+        display: none;
+      }
+
+      /* Line Items Table styling */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      th {
+        background-color: var(--bg-input);
+        text-align: left;
+        padding: 10px;
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+
+      td {
+        padding: 8px;
+        border: 1px solid var(--border-color);
+        vertical-align: top;
+      }
+
+      .btn {
+        padding: 8px 16px;
+        font-weight: 600;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+      }
+
+      .btn-primary {
+        background-color: var(--color-blue-comm);
+        color: white;
+      }
+
+      .btn-secondary {
+        background-color: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+      }
+
+      .btn-danger {
+        background-color: var(--color-danger);
+        color: white;
+        padding: 4px 8px;
+        font-size: 11px;
+      }
+
+      /* Sidebar styling */
+      .alert-banner {
+        background-color: #451a03;
+        border: 1px solid var(--color-warning);
+        border-radius: 4px;
+        padding: 12px;
+        margin-bottom: 15px;
+      }
+
+      .alert-banner.danger {
+        background-color: #450a0a;
+        border-color: var(--color-danger);
+      }
+
+      .alert-title {
+        font-weight: bold;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .alert-desc {
+        color: var(--text-muted);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .alert-rule {
+        font-size: 11px;
+        color: var(--text-main);
+        margin-top: 6px;
+        font-family: monospace;
+      }
+
+      .action-block {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 20px;
+        border-top: 1px solid var(--border-color);
+        padding-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main-workspace">
+      <div class="app-header">
+        <div>
+          <h1>Structured Data Capture System for LC-Driven Invoice Generation</h1>
+          <p>Ensures immediate data symmetry between export documentation pipelines and downstream SWIFT MT700 instructions.</p>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-secondary" onclick="triggerPreview()">Simulate Live Preview</button>
+        </div>
+      </div>
+      <!-- SECTION 1: INVOICE METADATA -->
+      <div class="form-section">
+        <div class="section-title">Invoice Metadata <span class="tag-comm">Commercial Parameters</span>
+        </div>
+        <div class="grid-4">
+          <div class="input-group">
+            <label>Proforma Invoice No. <span style="color:var(--color-danger)">*</span>
+            </label>
+            <input type="text" class="input-comm" id="piNumber" value="PI/2026/048" placeholder="e.g. PI/2026/001" required>
+          </div>
+          <div class="input-group">
+            <label>Issue Date <span style="color:var(--color-danger)">*</span>
+            </label>
+            <input type="date" class="input-comm" id="piDate" value="2026-06-04" required>
+          </div>
+          <div class="input-group">
+            <label>Buyer Reference (RFQ/PO)</label>
+            <input type="text" class="input-comm" id="buyerRef" value="RFQ/456/2026" placeholder="e.g. RFQ/789">
+          </div>
+          <div class="input-group">
+            <label>Validity Period (Days) <span style="color:var(--color-danger)">*</span>
+            </label>
+            <input type="number" class="input-comm" id="piValidity" value="30" min="1" required>
+          </div>
+        </div>
+      </div>
+      <!-- SECTION 2 & 3: PARTIES (BENEFICIARY & APPLICANT) -->
+      <div class="grid-2">
+        <div class="form-section">
+          <div class="section-title">Beneficiary (Exporter) Details <span class="tag-mt700">[MT59] Aligned</span>
+          </div>
+          <div class="input-group">
+            <label>Company Legal Name [MT59]</label>
+            <input type="text" class="input-mt700" id="beneName" value="ABC ENGINEERING PRIVATE LIMITED">
+          </div>
+          <div class="input-group">
+            <label>Registered Trading Address [MT59]</label>
+            <textarea class="input-mt700" id="beneAddress" rows="3">21 Industrial Estate, Andheri East, Mumbai – 400093, India</textarea>
+          </div>
+          <div class="grid-3">
+            <div class="input-group">
+              <label>IEC Number</label>
+              <input type="text" class="input-comm" value="0398765432">
+            </div>
+            <div class="input-group">
+              <label>GSTIN</label>
+              <input type="text" class="input-comm" value="27ABCDE1234F1Z5">
+            </div>
+            <div class="input-group">
+              <label>Corporate Email Address</label>
+              <input type="email" class="input-comm" value="exports@abcengg.com">
+            </div>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="section-title">Applicant (Buyer) Details <span class="tag-mt700">[MT50] Aligned</span>
+          </div>
+          <div class="input-group">
+            <label>Buyer Corporate Entity Name [MT50]</label>
+            <input type="text" class="input-mt700" id="applicantName" value="XYZ IMPORTS LLC">
+          </div>
+          <div class="input-group">
+            <label>Full Postal Address [MT50]</label>
+            <textarea class="input-mt700" id="applicantAddress" rows="3">P.O. Box 12345, Dubai, United Arab Emirates</textarea>
+          </div>
+          <div class="grid-2">
+            <div class="input-group">
+              <label>Buyer Tel Number</label>
+              <input type="text" class="input-comm" value="+971 4 1234567">
+            </div>
+            <div class="input-group">
+              <label>Buyer Email Address</label>
+              <input type="email" class="input-comm" value="imports@xyzimports.ae">
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- SECTION 4: BANKING ROUTING ARCHITECTURE -->
+      <div class="form-section">
+        <div class="section-title">Banking Infrastructure Routing <span class="tag-mt700">[MT57/MT54] Aligned</span>
+        </div>
+        <div class="grid-2">
+          <div style="border-right: 1px solid var(--border-color); padding-right: 15px;">
+            <h4 style="margin:0 0 10px 0; color:var(--color-green-mt700)">Beneficiary Bank (Advising/Negotiating Bank)</h4>
+            <div class="grid-2">
+              <div class="input-group">
+                <label>Bank Name</label>
+                <input type="text" class="input-comm" value="State Bank of India">
+              </div>
+              <div class="input-group">
+                <label>SWIFT BIC Code</label>
+                <input type="text" class="input-comm" value="SBININBBXXX" style="text-transform: uppercase;">
+              </div>
+            </div>
+            <div class="input-group">
+              <label>Routing Branch Details</label>
+              <input type="text" class="input-comm" value="International Banking Division, Mumbai Main Branch, India">
+            </div>
+          </div>
+          <div style="padding-left: 15px;">
+            <h4 style="margin:0 0 10px 0; color:var(--color-blue-comm)">Issuing Bank (Applicant's Financing Institution)</h4>
+            <div class="grid-2">
+              <div class="input-group">
+                <label>Bank Name</label>
+                <input type="text" class="input-comm" value="Emirates National Bank">
+              </div>
+              <div class="input-group">
+                <label>SWIFT BIC Code</label>
+                <input type="text" class="input-comm" value="ENBDUAEAXXX" style="text-transform: uppercase;">
+              </div>
+            </div>
+            <div class="input-group">
+              <label>Routing Branch Details</label>
+              <input type="text" class="input-comm" value="Trade Finance Division, Dubai, UAE">
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- SECTION 5: CORE LETTER OF CREDIT SYSTEM INSTRUCTIONS -->
+      <div class="form-section">
+        <div class="section-title">Letter of Credit Structural Mandates <span class="tag-mt700">MT700 Engine Constraints</span>
+        </div>
+        <div class="grid-3">
+          <div class="input-group">
+            <label>Form of Credit [40A] <span class="tag-mt700">MT700</span>
+            </label>
+            <select class="input-mt700" id="formOfCredit">
+              <option value="IRREVOCABLE" selected>IRREVOCABLE</option>
+              <option value="REVOCABLE">REVOCABLE (Not Recommended)</option>
+              <option value="IRREVOCABLE TRANSFERABLE">IRREVOCABLE TRANSFERABLE</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Applicable Rules [40E] <span class="tag-mt700">MT700</span>
+            </label>
+            <input type="text" class="input-mt700" id="applicableRules" value="UCP LATEST" onblur="validateRulesField()">
+            <div class="inline-suggest" id="suggestRules" onclick="fixRulesField()">Click to Auto-Normalize: "UCP 600 ICC Publication No. 600"</div>
+          </div>
+          <div class="input-group">
+            <label>Available With - Bank [41A] <span class="tag-mt700">MT700</span>
+            </label>
+            <input type="text" class="input-mt700" value="State Bank of India, Mumbai">
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="input-group">
+            <label>Available By [41A] <span class="tag-mt700">MT700</span>
+            </label>
+            <select class="input-mt700">
+              <option value="BY SIGHT PAYMENT" selected>BY SIGHT PAYMENT</option>
+              <option value="BY ACCEPTANCE">BY ACCEPTANCE</option>
+              <option value="BY DEFERRED PAYMENT">BY DEFERRED PAYMENT</option>
+              <option value="BY NEGOTIATION">BY NEGOTIATION</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Drafts At [42C] <span class="tag-mt700">MT700</span>
+            </label>
+            <input type="text" class="input-mt700" value="SIGHT">
+          </div>
+          <div class="input-group">
+            <label>Confirmation Instructions [49] <span class="tag-mt700">MT700</span>
+            </label>
+            <select class="input-mt700">
+              <option value="WITHOUT" selected>WITHOUT</option>
+              <option value="CONFIRM">CONFIRM</option>
+              <option value="MAY ADD">MAY ADD</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="input-group">
+            <label>Date of Expiry [31D] <span style="color:var(--color-danger)">*</span>
+              <span class="tag-mt700">MT700</span>
+            </label>
+            <input type="date" class="input-mt700" id="expiryDate" value="2026-09-15" onchange="validateDates()">
+            <div class="inline-alert" id="dateError">Expiry date must occur after the Latest Shipment Date.</div>
+          </div>
+          <div class="input-group">
+            <label>Place of Expiry (City/Country) [31D] <span style="color:var(--color-danger)">*</span>
+              <span class="tag-mt700">MT700</span>
+            </label>
+            <input type="text" class="input-mt700" id="expiryPlace" value="MUMBAI" onblur="validateExpiryPlace()">
+            <div class="inline-alert" id="placeError">Structural Defect: Explicitly separate City and Country (e.g. 'Mumbai, India').</div>
+          </div>
+          <div class="input-group">
+            <label>Presentation Period [48] <span class="tag-mt700">MT700</span>
+            </label>
+            <input type="text" class="input-mt700" value="WITHIN 21 DAYS FROM SHIPMENT BUT WITHIN VALIDITY OF CREDIT">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="input-group">
+            <label>Banking Fees Allocation Outside India [71D] <span class="tag-mt700">MT700</span>
+            </label>
+            <select class="input-mt700" id="bankingCharges" onchange="validateCharges()">
+              <option value="APPLICANT" selected>ALL BANKING CHARGES OUTSIDE INDIA ARE FOR APPLICANT'S ACCOUNT</option>
+              <option value="BENEFICIARY">ALL BANKING CHARGES OUTSIDE INDIA ARE FOR BENEFICIARY'S ACCOUNT</option>
+            </select>
+            <div class="inline-warn" id="chargesWarning" style="display:block; color:var(--color-warning);">Standard Rule Check: Verified. Aligns with basic UCP 600 Art. 37 cross-border risk mitigation.</div>
+          </div>
+        </div>
+      </div>
+      <!-- SECTION 6: LOGISTICS & TRANSPORT ROUTING MODALS -->
+      <div class="form-section">
+        <div class="section-title">Logistics & Supply Chain Trajectory <span class="tag-mt700">Shipping Mandates</span>
+        </div>
+        <div class="grid-3">
+          <div class="input-group">
+            <label>Incoterms Rule (2020 Standard) <span style="color:var(--color-danger)">*</span>
+            </label>
+            <select class="input-comm" id="incotermRule" onchange="toggleInsuranceInput()">
+              <option value="CIF" selected>CIF - COST, INSURANCE AND FREIGHT (Jebel Ali)</option>
+              <option value="FOB">FOB - FREE ON BOARD</option>
+              <option value="EXW">EXW - EX WORKS</option>
+              <option value="CFR">CFR - COST AND FREIGHT</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Port of Loading [44E] <span class="tag-mt700">MT700</span>
+            </label>
+            <input type="text" class="input-mt700" value="Nhava Sheva, India" placeholder="Type port node...">
+          </div>
+          <div class="input-group">
+            <label>Port of Discharge [44E] <span class="tag-mt700">MT700</span>
+            </label>
+            <input type="text" class="input-mt700" value="Jebel Ali, UAE">
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="input-group">
+            <label>Latest Shipment Date [44C] <span style="color:var(--color-danger)">*</span>
+              <span class="tag-mt700">MT700</span>
+            </label>
+            <input type="date" class="input-mt700" id="shipmentDate" value="2026-08-31" onchange="validateDates()">
+          </div>
+          <div class="input-group">
+            <label>Country of Origin of Goods</label>
+            <input type="text" class="input-comm" value="INDIA">
+          </div>
+          <div class="input-group">
+            <label>Final Destination City/Country [44B]</label>
+            <input type="text" class="input-mt700" value="Dubai, UAE">
+          </div>
+        </div>
+        <div class="grid-4">
+          <div class="input-group">
+            <label>Partial Shipment [43P] <span class="tag-mt700">MT700</span>
+            </label>
+            <select class="input-mt700" id="partialShipment" onchange="flagLogisticsToggles()">
+              <option value="NOT ALLOWED" selected>NOT ALLOWED</option>
+              <option value="ALLOWED">ALLOWED</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Transshipment [43T] <span class="tag-mt700">MT700</span>
+            </label>
+            <select class="input-mt700">
+              <option value="ALLOWED" selected>ALLOWED</option>
+              <option value="NOT ALLOWED">NOT ALLOWED</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Pre-Carriage By</label>
+            <input type="text" class="input-comm" value="NOT APPLICABLE">
+          </div>
+          <div class="input-group">
+            <label>Place of Pre-Carrier Receipt</label>
+            <input type="text" class="input-comm" value="NOT APPLICABLE">
+          </div>
+        </div>
+      </div>
+      <!-- SECTION 7 & 8: GOODS DESCRIPTION, SPECIFICATIONS & FINANCIAL MATRIX -->
+      <div class="form-section">
+        <div class="section-title">Goods Specification Breakdown & Financial Valuation <span class="tag-mt700">[MT45A] Mapped</span>
+        </div>
+        <div class="grid-3" style="margin-bottom:15px;">
+          <div class="input-group">
+            <label>Base Transaction Currency [32B] <span style="color:var(--color-danger)">*</span>
+              <span class="tag-mt700">MT700</span>
+            </label>
+            <select class="input-mt700" id="currency">
+              <option value="USD" selected>USD - United States Dollar</option>
+              <option value="EUR">EUR - Euro Zone</option>
+              <option value="AED">AED - UAE Dirham</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Quantity/Amount Tolerance [39A] <span class="tag-mt700">MT700</span>
+            </label>
+            <input type="text" class="input-mt700" value="+/- 5%">
+          </div>
+        </div>
+        <table id="goodsTable">
+          <thead>
+            <tr>
+              <th style="width:5%">Sr.</th>
+              <th style="width:45%">Item Description & Specifications [MT45A]</th>
+              <th style="width:15%">HS Code Number</th>
+              <th style="width:10%">Qty</th>
+              <th style="width:10%">Unit Type</th>
+              <th style="width:15%">Unit Price</th>
+              <th style="width:5%">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>
+                <input type="text" class="input-mt700" style="width:90%" value="Industrial Automation Control Panels Model ACP-1">
+              </td>
+              <td>
+                <input type="text" class="input-comm hs-input" style="width:85%" value="85371000" onblur="normalizeHS(this)">
+                <div class="inline-suggest"></div>
+              </td>
+              <td>
+                <input type="number" class="input-comm qty-calc" style="width:80%" value="100" oninput="calculateFinancialMatrix()">
+              </td>
+              <td>
+                <input type="text" class="input-comm" style="width:80%" value="Nos">
+              </td>
+              <td>
+                <input type="number" class="input-comm price-calc" style="width:85%" value="500.00" oninput="calculateFinancialMatrix()">
+              </td>
+              <td>
+                <button class="btn btn-danger" onclick="deleteRow(this)">X</button>
+              </td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>
+                <input type="text" class="input-mt700" style="width:90%" value="Spare Controller Modules">
+              </td>
+              <td>
+                <input type="text" class="input-comm hs-input" style="width:85%" value="85389000" onblur="normalizeHS(this)">
+                <div class="inline-suggest"></div>
+              </td>
+              <td>
+                <input type="number" class="input-comm qty-calc" style="width:80%" value="50" oninput="calculateFinancialMatrix()">
+              </td>
+              <td>
+                <input type="text" class="input-comm" style="width:80%" value="Nos">
+              </td>
+              <td>
+                <input type="number" class="input-comm price-calc" style="width:85%" value="200.00" oninput="calculateFinancialMatrix()">
+              </td>
+              <td>
+                <button class="btn btn-danger" onclick="deleteRow(this)">X</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <button class="btn btn-secondary" style="margin-top:12px; padding:4px 10px; font-size:11px;" onclick="addGoodsRow()">+ Add Item Line Block</button>
+        <div style="margin-top:20px; border-top:1px dashed var(--border-color); padding-top:15px; display:flex; justify-content:flex-end;">
+          <div style="width:300px; display:flex; flex-direction:column; gap:10px;">
+            <div style="display:flex; justify-content:between; align-items:center;">
+              <span style="color:var(--text-muted); flex-grow:1;">Calculated FOB Value:</span>
+              <input type="text" id="fobValue" class="input-comm" style="width:120px; text-align:right;" value="60000.00" readonly>
+            </div>
+            <div style="display:flex; justify-content:between; align-items:center;">
+              <span style="color:var(--text-muted); flex-grow:1;">Freight Charges:</span>
+              <input type="number" id="freightCost" class="input-comm" style="width:120px; text-align:right;" value="2000.00" oninput="calculateFinancialMatrix()">
+            </div>
+            <div style="display:flex; justify-content:between; align-items:center;">
+              <span style="color:var(--text-muted); flex-grow:1;">Insurance Protection Value (110%):</span>
+              <input type="number" id="insuranceCost" class="input-comm" style="width:120px; text-align:right;" value="500.00" oninput="calculateFinancialMatrix()">
+            </div>
+            <div style="display:flex; justify-content:between; align-items:center; border-top:1px solid var(--border-color); padding-top:8px;">
+              <span style="font-weight:bold; color:var(--color-green-mt700); flex-grow:1;">Total CIF Valuation [USD]:</span>
+              <input type="text" id="totalCif" class="input-mt700" style="width:120px; text-align:right; font-weight:bold; color:var(--color-green-mt700);" value="62500.00" readonly>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- SECTION 9: MANDATORY DOCUMENT CHECKLIST BUILDER -->
+      <div class="form-section">
+        <div class="section-title">Mandatory Credit Documentation Checklist Builder <span class="tag-mt700">[MT700 Docs Setup]</span>
+        </div>
+        <p style="color:var(--text-muted); margin:0 0 15px 0;">Select which explicit validation nodes must be structured inside the generated PI declaration block to achieve seamless presentation verification later.</p>
+        <div style="display:flex; flex-direction:column; gap:8px;" id="docsContainer">
+          <label>
+            <input type="checkbox" checked data-type="NON-MT700" value="Signed Commercial Invoice in three originals."> Signed Commercial Invoice in three originals. <span class="tag-comm">[Commercial]</span>
+          </label>
+          <label>
+            <input type="checkbox" checked data-type="NON-MT700" value="Detailed Packing List in three copies."> Detailed Packing List in three copies. <span class="tag-comm">[Commercial]</span>
+          </label>
+          <label>
+            <input type="checkbox" checked data-type="NON-MT700" value="Full Set Clean On Board Ocean Bills of Lading made out to order, blank endorsed and marked 'Freight Prepaid'."> Full Set Clean On Board Ocean Bills of Lading made out to order, blank endorsed and marked "Freight Prepaid". <span class="tag-comm">[Commercial]</span>
+          </label>
+          <label>
+            <input type="checkbox" checked data-type="NON-MT700" value="Certificate of Origin issued by Chamber of Commerce."> Certificate of Origin issued by Chamber of Commerce. <span class="tag-comm">[Commercial]</span>
+          </label>
+          <label>
+            <input type="checkbox" checked data-type="NON-MT700" value="Insurance Policy/Certificate covering 110% of CIF value against Institute Cargo Clauses (A), Institute War Clauses and Institute Strike Clauses."> Insurance Policy/Certificate covering 110% of CIF value against Institute Cargo Clauses (A), Institute War Clauses and Institute Strike Clauses. <span class="tag-comm">[Commercial]</span>
+          </label>
+          <label>
+            <input type="checkbox" checked data-type="NON-MT700" value="Inspection Certificate issued by SGS or equivalent independent inspection agency."> Inspection Certificate issued by SGS or equivalent independent inspection agency. <span class="tag-comm">[Commercial]</span>
+          </label>
+          <label>
+            <input type="checkbox" checked data-type="NON-MT700" value="Manufacturer's Quality Certificate."> Manufacturer's Quality Certificate. <span class="tag-comm">[Commercial]</span>
+          </label>
+          <label>
+            <input type="checkbox" checked data-type="MT700" value="Beneficiary's Certificate certifying that one set of non-negotiable documents has been couriered directly to applicant within three days after shipment."> Beneficiary's Certificate certifying that one set of non-negotiable documents has been couriered directly to applicant within three days after shipment. <span class="tag-mt700">[SWIFT Target Field Block]</span>
+          </label>
+          <label>
+            <input type="checkbox" checked data-type="NON-MT700" value="Weight Certificate."> Weight Certificate. <span class="tag-comm">[Commercial]</span>
+          </label>
+          <label>
+            <input type="checkbox" checked data-type="NON-MT700" value="Warranty Certificate valid for 24 months from date of commissioning."> Warranty Certificate valid for 24 months from date of commissioning. <span class="tag-comm">[Commercial]</span>
+          </label>
+        </div>
+        <div style="margin-top:12px; display:flex; gap:10px;">
+          <input type="text" id="customDocText" placeholder="Enter custom clause requirement description..." style="flex-grow:1;">
+          <select id="customDocType">
+            <option value="NON-MT700">Commercial Input</option>
+            <option value="MT700">SWIFT Clause Mapped</option>
+          </select>
+          <button class="btn btn-secondary" onclick="addCustomDocumentRow()">Append Custom Doc Clause</button>
+        </div>
+      </div>
+      <!-- SECTION 10: REGULATORY DISCLOSURE & SUBMISSION RUNWAYS -->
+      <div class="form-section">
+        <div class="section-title">Regulatory Disclosures & Certification Authorization</div>
+        <div class="input-group">
+          <label>Exporter Attestation & Definitive Declaration Statement</label>
+          <textarea class="input-comm" rows="2" id="declarationStatement">We confirm that the above goods are offered subject to the terms and conditions stated herein.</textarea>
+        </div>
+        <div class="grid-2">
+          <div class="input-group">
+            <label>Corporate Authorized Signatory Identification</label>
+            <input type="text" class="input-comm" value="For ABC ENGINEERING PRIVATE LIMITED - Authorized Signatory">
+          </div>
+          <div class="input-group">
+            <label>Execution Timestamp Date Log</label>
+            <input type="date" class="input-comm" value="2026-06-04">
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- LIVE WORKSPACE ENGINE SIDEBAR WRAPPER -->
+    <div class="sidebar-engine" id="sidebarEngine">
+      <h3 style="margin-top:0; color:var(--text-main); font-size:15px; border-bottom:1px solid var(--border-color); padding-bottom:10px;"> 🔍 Compliance Optimization Sidebar </h3>
+      <p style="font-size:11px; color:var(--text-muted); margin-bottom:20px;"> The active document structure evaluates data in real time against strict ICC UCP 600 frameworks, ISBP 821 parameters, and international customs schemas. </p>
+      <div id="activeAlertsZone">
+        <!-- DYNAMIC TARGET CONTAINER FOR THE VALIDATION ENGINE SCRIPTS -->
+        <div class="alert-banner danger" id="alertExpiryPlace" style="display:none;">
+          <div class="alert-title">🚨 Defective Expiry Place Form [MT31D]</div>
+          <div class="alert-desc">The SWIFT system cannot correctly process unified geolocation blocks. Expiry city must be physically decoupled from country data fields.</div>
+          <div class="alert-rule">Validation Protocol: ISBP 821 Rule Mapping Structure</div>
+        </div>
+        <div class="alert-banner danger" id="alertRulesStructure" style="display:none;">
+          <div class="alert-title">🚨 Ambiguity Hazard: Rule Reference [40E]</div>
+          <div class="alert-desc">Using incomplete nomenclature like 'UCP LATEST' will cause downstream processing gaps at advising banks. Use strict standardization protocols.</div>
+          <div class="alert-rule">Validation Protocol: UCP 600 Regulation Implementation</div>
+        </div>
+        <div class="alert-banner" id="alertPartialShipment" style="display:block;">
+          <div class="alert-title">⚠️ Supply Chain Constraint Risk [MT43P]</div>
+          <div class="alert-desc">'NOT ALLOWED' forces production and cargo distribution pipelines to execute as a single drop shipment. Discrepancies emerge if partial volumes roll over.</div>
+          <div class="alert-rule">Validation Protocol: Operational Risk Advisory</div>
+        </div>
+        <div class="alert-banner" style="background-color:#1e1b4b; border-color:var(--color-blue-comm);">
+          <div class="alert-title" style="color:var(--color-blue-comm);">ℹ️ ECGC Screening Advisory Warning</div>
+          <div class="alert-desc">ECGC restrictive and localized blacklists are restricted from public APIs. The validation manager requires an independent user clearance verification portal.</div>
+          <div class="alert-rule">Validation Protocol: Sovereign Sanction Matrix Compliance</div>
+        </div>
+      </div>
+      <div class="action-block">
+        <button class="btn btn-primary" style="background-color:var(--color-green-mt700); font-size:14px; padding:12px;" onclick="executeGenerationPipeline()"> ⚡ Compile & Generate Proforma Invoice </button>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <button class="btn btn-secondary" onclick="alert('System Action: Compiling schema into secure MT700 printable PDF payload...')">Download Secure PDF</button>
+          <button class="btn btn-secondary" onclick="alert('System Action: Transferring state matrix into clean MS Word OpenXML asset...')">Download Editable Word</button>
+        </div>
+      </div>
+    </div>
+    <!-- COMPLIANCE LOGIC MECHANISMS ENGINE SCRIPT -->
+    <script>
+      function validateExpiryPlace() {
+        const placeInput = document.getElementById('expiryPlace').value;
+        const errorElement = document.getElementById('placeError');
+        const alertSidebar = document.getElementById('alertExpiryPlace');
+        if (placeInput.toUpperCase() === 'MUMBAI') {
+          errorElement.style.display = 'block';
+          alertSidebar.style.display = 'block';
+        } else {
+          errorElement.style.display = 'none';
+          alertSidebar.style.display = 'none';
+        }
+      }
+
+      function validateRulesField() {
+        const rulesInput = document.getElementById('applicableRules').value;
+        const suggestElement = document.getElementById('suggestRules');
+        const alertSidebar = document.getElementById('alertRulesStructure');
+        if (rulesInput.toUpperCase() === 'UCP LATEST' || rulesInput.toUpperCase() === 'UCPDC 600') {
+          suggestElement.style.display = 'block';
+          alertSidebar.style.display = 'block';
+        } else {
+          suggestElement.style.display = 'none';
+          alertSidebar.style.display = 'none';
+        }
+      }
+
+      function fixRulesField() {
+        document.getElementById('applicableRules').value = 'UCP 600 ICC Publication No. 600';
+        document.getElementById('suggestRules').style.display = 'none';
+        document.getElementById('alertRulesStructure').style.display = 'none';
+      }
+
+      function validateDates() {
+        const shipmentDate = new Date(document.getElementById('shipmentDate').value);
+        const expiryDate = new Date(document.getElementById('expiryDate').value);
+        const dateError = document.getElementById('dateError');
+        if (shipmentDate >= expiryDate) {
+          dateError.style.display = 'block';
+        } else {
+          dateError.style.display = 'none';
+        }
+      }
+
+      function validateCharges() {
+        const charges = document.getElementById('bankingCharges').value;
+        const warning = document.getElementById('chargesWarning');
+        if (charges === 'BENEFICIARY') {
+          warning.innerText = '⚠️ Out-of-Country Premium Deviation: Forcing out-of-country charges onto the exporter deviates from international standards. Ensure commercial clearance.';
+          warning.style.color = 'var(--color-danger)';
+        } else {
+          warning.innerText = 'Standard Rule Check: Verified. Aligns with basic UCP 600 Art. 37 cross-border risk mitigation.';
+          warning.style.color = 'var(--color-warning)';
+        }
+      }
+
+      function flagLogisticsToggles() {
+        const partial = document.getElementById('partialShipment').value;
+        const alertBlock = document.getElementById('alertPartialShipment');
+        if (partial === 'NOT ALLOWED') {
+          alertBlock.style.display = 'block';
+        } else {
+          alertBlock.style.display = 'none';
+        }
+      }
+
+      function normalizeHS(inputNode) {
+        let val = inputNode.value.replace(/[^0-9]/g, '');
+        const suggestDiv = inputNode.nextElementSibling;
+        if (inputNode.value.toUpperCase().includes('HSR') || inputNode.value.toUpperCase().includes('CODE')) {
+          inputNode.value = val;
+        }
+        if (val.length > 0 && val.length !== 8) {
+          suggestDiv.innerText = '⚠️ Structure Warning: standard tariff configurations expect an 8-digit system string.';
+          suggestDiv.style.color = 'var(--color-warning)';
+          suggestDiv.style.display = 'block';
+        } else {
+          suggestDiv.style.display = 'none';
+        }
+        calculateFinancialMatrix();
+      }
+
+      function addGoodsRow() {
+        const tableBody = document.querySelector('#goodsTable tbody');
+        const rowCount = tableBody.rows.length + 1;
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+                
+																																																														<td>${rowCount}</td>
+																																																														<td>
+																																																															<input type="text" class="input-mt700" style="width:90%" placeholder="Specify item data...">
+																																																															</td>
+																																																															<td>
+																																																																<input type="text" class="input-comm hs-input" style="width:85%" placeholder="85371000" onblur="normalizeHS(this)">
+																																																																	<div class="inline-suggest"></div>
+																																																																</td>
+																																																																<td>
+																																																																	<input type="number" class="input-comm qty-calc" style="width:80%" value="0" oninput="calculateFinancialMatrix()">
+																																																																	</td>
+																																																																	<td>
+																																																																		<input type="text" class="input-comm" style="width:80%" value="Nos">
+																																																																		</td>
+																																																																		<td>
+																																																																			<input type="number" class="input-comm price-calc" style="width:85%" value="0.00" oninput="calculateFinancialMatrix()">
+																																																																			</td>
+																																																																			<td>
+																																																																				<button class="btn btn-danger" onclick="deleteRow(this)">X</button>
+																																																																			</td>
+            `;
+        tableBody.appendChild(newRow);
+      }
+
+      function deleteRow(btn) {
+        const row = btn.parentNode.parentNode;
+        row.parentNode.removeChild(row);
+        calculateFinancialMatrix();
+      }
+
+      function calculateFinancialMatrix() {
+        let fobSum = 0;
+        const rows = document.querySelectorAll('#goodsTable tbody tr');
+        rows.forEach(row => {
+          const qty = parseFloat(row.querySelector('.qty-calc').value) || 0;
+          const price = parseFloat(row.querySelector('.price-calc').value) || 0;
+          fobSum += qty * price;
+        });
+        document.getElementById('fobValue').value = fobSum.toFixed(2);
+        const freight = parseFloat(document.getElementById('freightCost').value) || 0;
+        const insurance = parseFloat(document.getElementById('insuranceCost').value) || 0;
+        const totalCIF = fobSum + freight + insurance;
+        document.getElementById('totalCif').value = totalCIF.toFixed(2);
+      }
+
+      function toggleInsuranceInput() {
+        const incoterm = document.getElementById('incotermRule').value;
+        const insuranceInput = document.getElementById('insuranceCost');
+        if (incoterm !== 'CIF') {
+          insuranceInput.value = "0.00";
+          insuranceInput.disabled = true;
+          insuranceInput.style.opacity = "0.5";
+        } else {
+          insuranceInput.disabled = false;
+          insuranceInput.style.opacity = "1";
+          insuranceInput.value = "500.00";
+        }
+        calculateFinancialMatrix();
+      }
+
+      function addCustomDocumentRow() {
+        const text = document.getElementById('customDocText').value;
+        const type = document.getElementById('customDocType').value;
+        if (!text) return;
+        const container = document.getElementById('docsContainer');
+        const label = document.createElement('label');
+        const isMt700 = type === 'MT700';
+        label.innerHTML = `
+																																																																			<input type="checkbox" checked data-type="${type}" value="${text}"> ${text} 
+																																																																				<span class="${isMt700 ? 'tag-mt700' : 'tag-comm'}">[${isMt700 ? 'SWIFT Target Field Block' : 'Commercial'}]</span>`;
+        container.appendChild(label);
+        document.getElementById('customDocText').value = '';
+      }
+
+      function triggerPreview() {
+        validateExpiryPlace();
+        validateRulesField();
+        validateDates();
+        alert("Matrix Scan Simulation Complete:\n- Checked input strings for MT700 edge defects.\n- Evaluated dynamic totals calculations.");
+      }
+
+      function executeGenerationPipeline() {
+        validateExpiryPlace();
+        validateRulesField();
+        const totalCifVal = document.getElementById('totalCif').value;
+        const piNum = document.getElementById('piNumber').value;
+        alert(`Compilation Complete!\nProforma Invoice ${piNum} successfully validated against UCP 600 criteria.\n\nTotal Confirmed Value: USD ${totalCifVal}\nPayload locked for export.`);
+      }
+      // Initial setup run
+      window.onload = function() {
+        validateExpiryPlace();
+        validateRulesField();
+      }
+    </script>
+  </body>
+</html>
